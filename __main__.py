@@ -47,6 +47,7 @@ maxBrightness = None
 
 counter = 0
 
+last5Values = []
 
 #do 20 times
 while True:
@@ -60,10 +61,18 @@ while True:
 
         ret, frame = cap.read()
 
-        cfe.findBrightAreas(frame)
+        #brightAreas = cfe.findBrightAreas(frame)
 
         # Extract the brightness
         brightness = cfe.extractNormalizedBrightness(frame)
+
+        # Add to the last 5 values
+        last5Values.append(brightness)
+        if len(last5Values) > 3:
+            last5Values.pop(0)
+
+        # interpolate the brightness
+        brightness = np.mean(last5Values)
 
         if minBrightness is None or brightness < minBrightness:
             minBrightness = brightness
@@ -78,8 +87,9 @@ while True:
             mg.stopNotes(outports[0], lastNotes)
         
         lastNotes = mg.outputNote(outports[0], brightness)
-        
 
+        #lastNotes = mg.playDrums(outports[0], len(brightAreas))
+        
 
         # #Base on 1
         # if counter % 2 == 0:
@@ -92,7 +102,7 @@ while True:
         
         lastTimeStamp = time.time()
         print(round((time.time() - lastTimeStamp) - sleepTime), 4)
-        if counter >= 20:
+        if counter >= 200:
             mg.stopNotes(outports[0], lastNotes)
             break
 

@@ -45,6 +45,8 @@ def findBrightAreas(image):
     # a circle corresponding to the centroid
     output = image.copy()
 
+    blobPositionsAndArea = []
+
         # loop over the number of unique connected component labels
     for i in range(0, numLabels):
         # if this is the first component then we examine the
@@ -68,9 +70,12 @@ def findBrightAreas(image):
         area = stats[i, cv2.CC_STAT_AREA]
         (cX, cY) = centroids[i]
 
-        if area > JELLY_THRESHOLD:
+        if i != 0 and area > JELLY_THRESHOLD:
+            blobPositionsAndArea.append([cX, cY, area])
             cv2.rectangle(output, (x, y), (x + w, y + h), (0, 255, 0), 3)
             cv2.circle(output, (int(cX), int(cY)), 4, (0, 0, 255), -1)
 
     cv2.imshow("result", output)
-    cv2.waitKey(1)
+    #cv2.waitKey(1)
+    return blobPositionsAndArea
+
