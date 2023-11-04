@@ -21,7 +21,7 @@ def outputNote(stream, input):
     input = clampBrightness(input)
 
     #convert input to a note
-    note = 30 + round(input * 50)
+    note = 0 + round(input * 25) * 5
 
     grTerz = note + 3
     klTerz = note + 5
