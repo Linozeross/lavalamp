@@ -7,7 +7,9 @@ import camFeatureExtractor as cfe
 import midiGenerator as mg
 import time
 
-BPM = 60
+BPM = 120
+
+# cfe.findBrightAreas()
 
 print("Welcome to the lavalamp 💡!")
 
@@ -22,9 +24,6 @@ for port in mido.get_output_names():
 
 
 sleepTime = 60.0/BPM
-
-
-
 
 cap = cv2.VideoCapture(0)
 
@@ -48,25 +47,32 @@ maxBrightness = None
 
 counter = 0
 
+last5Values = []
 
-
-
-
-
-while(True):
-
+#do 20 times
+while True:
     #if it's been long enough since the last note, play a new one
-    
     timeJump = time.time() - lastTimeStamp
     if timeJump > sleepTime:
         
         counter += 1
-        counter = counter % 2
+        
         print(counter)
 
         ret, frame = cap.read()
+
+        #brightAreas = cfe.findBrightAreas(frame)
+
         # Extract the brightness
         brightness = cfe.extractNormalizedBrightness(frame)
+
+        # Add to the last 5 values
+        last5Values.append(brightness)
+        if len(last5Values) > 3:
+            last5Values.pop(0)
+
+        # interpolate the brightness
+        brightness = np.mean(last5Values)
 
         if minBrightness is None or brightness < minBrightness:
             minBrightness = brightness
@@ -81,11 +87,12 @@ while(True):
             mg.stopNotes(outports[0], lastNotes)
         
         lastNotes = mg.outputNote(outports[0], brightness)
+
+        #lastNotes = mg.playDrums(outports[0], len(brightAreas))
         
 
-
         # #Base on 1
-        # if counter == 0:
+        # if counter % 2 == 0:
         #     if lastBaseNote is not None:
         #         mg.stopNote(outports[0], lastBaseNote)
 
@@ -93,9 +100,11 @@ while(True):
         #     #mg.startNoteOutput(outport)
         
         
-        
         lastTimeStamp = time.time()
         print(round((time.time() - lastTimeStamp) - sleepTime), 4)
+        if counter >= 200:
+            mg.stopNotes(outports[0], lastNotes)
+            break
 
    
     #mg.outputNote(outport, brightness)
